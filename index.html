@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<title>A track car designed from the ground up — Dr George Constandinides</title>
+<meta name="description" content="A road-legal track-day car designed from the ground up with vehicle dynamic response first, and a multibody model of the designer's own modified Mazda MX-5 NC, simulated round Achna Speedway on his logged inputs and correlated against his telemetry.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Hanken+Grotesk:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  /* Same design tokens as the portfolio (George_Constandinides_Portfolio_protected_2.html) */
+  :root{
+    --bg:#080B11; --bg-2:#0A0E16; --panel:#0D131D;
+    --line:rgba(255,255,255,0.085); --line-2:rgba(255,255,255,0.05);
+    --text:#E9EDF1; --muted:#98A4B1; --faint:#7D8999;
+    --cool:#35D6E0; --warm:#FFC24B; --hot:#FF5E3A; --cool-deep:#072329;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  @media (prefers-reduced-motion: reduce){ html{scroll-behavior:auto} }
+  body{background:var(--bg);color:var(--text);font-family:"Hanken Grotesk",system-ui,sans-serif;
+       font-size:1.0625rem;line-height:1.65;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+  a{color:inherit}
+  :focus-visible{outline:2px solid var(--cool);outline-offset:3px;border-radius:2px}
+  .mono{font-family:"IBM Plex Mono",ui-monospace,monospace}
+  .wrap{width:min(1100px, calc(100% - 32px));margin:0 auto}
+  .skip{position:absolute;left:-9999px;top:0;background:var(--cool);color:#000;padding:.5rem .8rem;z-index:100}
+  .skip:focus{left:16px;top:12px}
+
+  /* nav */
+  .nav{position:sticky;top:0;z-index:50;background:rgba(8,11,17,.86);backdrop-filter:blur(9px);border-bottom:1px solid var(--line-2)}
+  .nav .wrap{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.85rem 0}
+  .brand{font-family:"Space Grotesk",sans-serif;font-weight:600;text-decoration:none;letter-spacing:.01em;white-space:nowrap}
+  .brand span{color:var(--cool)}
+  .nav ul{display:flex;gap:1.1rem;list-style:none;font-size:.82rem}
+  .nav ul a{text-decoration:none;color:var(--muted);white-space:nowrap}
+  .nav ul a:hover{color:var(--text)}
+  @media (max-width:960px){ .nav ul{display:none} }
+
+  /* hero */
+  .hero{padding:clamp(3.5rem,8vw,6.5rem) 0 clamp(2.5rem,5vw,4rem);
+        background:radial-gradient(1200px 500px at 85% -10%, rgba(53,214,224,.10), transparent 60%),
+                   radial-gradient(900px 400px at -10% 110%, rgba(255,94,58,.07), transparent 60%)}
+  .eyebrow{font-family:"IBM Plex Mono",monospace;font-size:.78rem;letter-spacing:.14em;text-transform:uppercase;color:var(--cool);margin-bottom:1rem}
+  h1{font-family:"Space Grotesk",sans-serif;font-weight:600;font-size:clamp(2.1rem,5.2vw,3.6rem);line-height:1.08;letter-spacing:-.015em;max-width:20ch}
+  .lede{color:var(--muted);font-size:clamp(1.05rem,1.6vw,1.2rem);max-width:66ch;margin-top:1.2rem}
+  .tags{display:flex;flex-wrap:wrap;gap:.45rem;margin-top:1.4rem}
+  .tag{font-family:"IBM Plex Mono",monospace;font-size:.74rem;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:.2rem .65rem}
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1px;margin-top:2.4rem;
+         background:var(--line);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+  .stat{background:var(--panel);padding:1.1rem 1.2rem}
+  .stat .v{font-family:"Space Grotesk",sans-serif;font-size:1.7rem;font-weight:600;color:var(--text)}
+  .stat .v em{font-style:normal;color:var(--cool)}
+  .stat .k{font-family:"IBM Plex Mono",monospace;font-size:.74rem;color:var(--muted);margin-top:.2rem}
+
+  /* sections */
+  .section{padding:clamp(3rem,7vw,5.5rem) 0;border-top:1px solid var(--line-2)}
+  h2{font-family:"Space Grotesk",sans-serif;font-weight:600;font-size:clamp(1.55rem,3.2vw,2.3rem);line-height:1.15;letter-spacing:-.01em;margin-bottom:1.1rem;max-width:28ch}
+  h3{font-family:"Space Grotesk",sans-serif;font-weight:600;font-size:1.15rem;margin:1.6rem 0 .5rem}
+  .prose{max-width:68ch}
+  .prose p + p{margin-top:.9rem}
+  .prose ul,.prose ol{margin:.6rem 0 0 1.2rem}
+  .prose li{margin:.35rem 0}
+  .muted{color:var(--muted)}
+
+  /* links */
+  .btns{display:flex;flex-wrap:wrap;gap:.7rem;margin-top:1.6rem}
+  .btn{display:inline-flex;align-items:center;gap:.45rem;text-decoration:none;font-weight:600;font-size:.95rem;
+       padding:.65rem 1rem;border-radius:10px;border:1px solid var(--line);background:var(--panel)}
+  .btn.primary{background:var(--cool);color:#00191c;border-color:transparent}
+  .btn:hover{border-color:var(--cool)}
+
+  footer{border-top:1px solid var(--line-2);padding:2.2rem 0 3rem;color:var(--faint);font-size:.88rem}
+  footer .wrap{display:flex;flex-wrap:wrap;gap:.6rem 1.5rem;justify-content:space-between}
+  footer a{color:var(--muted)}
+
+  /* additions for this page */
+  sup,sub{line-height:0}
+  section[id]{scroll-margin-top:4.2rem}
+  .hero-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);gap:clamp(1.5rem,4vw,3rem);align-items:center}
+  @media (max-width:920px){ .hero-grid{grid-template-columns:1fr} }
+  .hero-media{margin:0}
+  .hero-media figcaption{font-size:.84rem;color:var(--muted);margin-top:.55rem}
+  .credit-line{font-size:.78rem;color:var(--faint);margin-top:.35rem;overflow-wrap:anywhere}
+  .credit-line a{color:inherit}
+
+  /* pictures: the renders are dark, the charts light; each opens enlarged */
+  .shot{margin:1.6rem 0 0}
+  .zoom{display:block;width:100%;padding:0;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#000;
+        cursor:zoom-in;font:inherit;color:inherit}
+  .zoom:hover{border-color:rgba(53,214,224,.55)}
+  .zoom img{display:block;width:100%;height:auto}
+  .shot.light .zoom{background:#fff}
+  .shot figcaption,.vid figcaption{font-size:.9rem;color:var(--muted);margin-top:.6rem;max-width:80ch}
+  .shot figcaption .mono,.vid figcaption .mono{color:var(--cool);margin-right:.4rem}
+  .shot.mid{max-width:900px}
+  .shot.narrow{max-width:640px}
+  .gallery{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1.2rem;margin-top:1.4rem}
+  @media (max-width:900px){ .gallery{grid-template-columns:repeat(2,minmax(0,1fr))} }
+  @media (max-width:560px){ .gallery{grid-template-columns:1fr} }
+  .gallery .shot{margin-top:0}
+  .vid{margin:1.8rem 0 0}
+  .vid video{display:block;width:100%;height:auto;aspect-ratio:16/9;background:#000;border-radius:12px;border:1px solid var(--line)}
+  .hint{font-family:"IBM Plex Mono",monospace;font-size:.74rem;color:var(--faint);margin-top:.9rem}
+
+  /* onboard video: YouTube's player loads only on click (the portfolio's facade) */
+  .embed{position:relative;padding-top:56.25%;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#000}
+  .embed iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+  .yt-poster{position:absolute;inset:0;width:100%;height:100%;margin:0;padding:0;border:0;
+    cursor:pointer;background:#05070b;display:block;overflow:hidden}
+  .yt-poster img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;
+    opacity:.6;transition:opacity .35s ease,transform .6s ease}
+  .yt-poster:hover img,.yt-poster:focus-visible img{opacity:.82;transform:scale(1.04)}
+  .yt-grad{position:absolute;inset:0;background:
+    radial-gradient(60% 60% at 50% 45%,rgba(8,11,17,0) 0%,rgba(8,11,17,.35) 100%),
+    linear-gradient(180deg,rgba(8,11,17,.15),rgba(8,11,17,.55))}
+  .yt-play{position:absolute;inset:0;margin:auto;width:64px;height:46px;
+    display:flex;align-items:center;justify-content:center;
+    filter:drop-shadow(0 8px 22px rgba(0,0,0,.55));transition:transform .25s ease}
+  .yt-poster:hover .yt-play,.yt-poster:focus-visible .yt-play{transform:scale(1.09)}
+  .yt-label{position:absolute;left:1rem;bottom:1rem;color:var(--text);
+    font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;
+    background:rgba(8,11,17,.55);padding:.4rem .65rem;border-radius:5px;
+    -webkit-backdrop-filter:blur(5px);backdrop-filter:blur(5px)}
+  @media (prefers-reduced-motion: reduce){ .yt-poster img,.yt-play{transition:none} .yt-poster:hover img,.yt-poster:focus-visible img{transform:none} }
+
+  /* two columns: text beside a figure or a table */
+  .split{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:clamp(1.5rem,4vw,3rem);align-items:start;margin-top:1.2rem}
+  @media (max-width:920px){ .split{grid-template-columns:1fr} }
+  .split .shot{margin-top:0}
+  .split h3:first-child{margin-top:0}
+
+  /* tables */
+  .tbl{overflow-x:auto;margin-top:1rem;max-width:760px}
+  .facts,.data{width:100%;border-collapse:collapse;font-size:.95rem}
+  .facts th,.facts td{text-align:left;vertical-align:top;padding:.5rem .6rem .5rem 0;border-bottom:1px solid var(--line)}
+  .facts th{font-family:"IBM Plex Mono",monospace;font-weight:500;font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;
+            color:var(--muted);width:34%;padding-top:.66rem}
+  .data th,.data td{text-align:left;padding:.5rem 1rem .5rem 0;border-bottom:1px solid var(--line);white-space:nowrap;font-variant-numeric:tabular-nums}
+  .data thead th{font-family:"IBM Plex Mono",monospace;font-weight:500;font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);
+                 white-space:normal;vertical-align:bottom}
+  @media (max-width:560px){ .data{font-size:.88rem} .data th,.data td{padding-right:.55rem} .data thead th{font-size:.64rem;letter-spacing:.03em} }
+  .data tbody th{font-weight:500;color:var(--text)}
+  .tnote{font-size:.85rem;color:var(--faint);margin-top:.55rem;max-width:80ch}
+  .notes{list-style:none;color:var(--muted);font-size:.97rem}
+  .notes li{margin:.55rem 0}
+  .notes strong{color:var(--text);font-weight:600}
+
+  /* the plan's phases */
+  .phases{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:.8rem;margin-top:1.2rem}
+  @media (max-width:900px){ .phases{grid-template-columns:repeat(2,minmax(0,1fr))} }
+  .phase{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:.8rem .9rem}
+  .phase .n{font-family:"Space Grotesk",sans-serif;font-weight:600;font-size:1.25rem;line-height:1;color:var(--cool)}
+  .phase .t{display:block;font-size:.93rem;line-height:1.35;margin-top:.35rem}
+  .st{display:inline-block;margin-top:.55rem;font-family:"IBM Plex Mono",monospace;font-size:.64rem;letter-spacing:.08em;text-transform:uppercase;
+      border-radius:999px;padding:.1rem .5rem;border:1px solid var(--line);color:var(--muted)}
+  .st.done{color:#00191c;background:var(--cool);border-color:transparent}
+  .st.prog{color:#1a1200;background:var(--warm);border-color:transparent}
+
+  /* cards */
+  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:1rem;margin-top:1.4rem}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:1.15rem 1.25rem}
+  .card .k{font-family:"IBM Plex Mono",monospace;font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;color:var(--warm)}
+  .card h3{margin:.35rem 0 .5rem;font-size:1.08rem;line-height:1.3}
+  .card p{color:var(--muted);font-size:.95rem}
+  .card p + p{margin-top:.45rem}
+  .card b{color:var(--text);font-weight:600}
+  .cards.six{grid-template-columns:repeat(3,minmax(0,1fr))}
+  @media (max-width:980px){ .cards.six{grid-template-columns:repeat(2,minmax(0,1fr))} }
+  @media (max-width:640px){ .cards.six{grid-template-columns:1fr} }
+
+  /* callout */
+  .lesson{border-left:3px solid var(--warm);background:rgba(255,194,75,.06);padding:.8rem 1rem;border-radius:0 10px 10px 0;margin-top:1.6rem;max-width:80ch}
+  .lesson .mono{display:block;font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;color:var(--warm);margin-bottom:.25rem}
+
+  /* how the model grew */
+  .timeline{list-style:none;margin-top:.6rem}
+  .timeline li{display:grid;grid-template-columns:4.6rem minmax(0,1fr);gap:.8rem;padding:.5rem 0;border-bottom:1px solid var(--line-2);color:var(--muted);font-size:.96rem}
+  .timeline .d{font-family:"IBM Plex Mono",monospace;font-size:.76rem;color:var(--cool);padding-top:.2rem}
+
+  .credits{list-style:none}
+  .credits li{font-size:.93rem;color:var(--muted);margin:.6rem 0;overflow-wrap:anywhere}
+  .credits li strong{color:var(--text);font-weight:600}
+  .credits a{color:inherit}
+
+  /* picture viewer */
+  .viewer{border:0;padding:0;margin:auto;background:transparent;color:var(--text);width:min(1600px,96vw);max-width:96vw;max-height:96vh}
+  .viewer::backdrop{background:rgba(4,6,10,.95)}
+  .viewer img{display:block;margin:0 auto;width:auto;height:auto;max-width:100%;max-height:84vh;border-radius:10px;background:#000}
+  .viewer img.light{background:#fff}
+  .viewer p{font-size:.9rem;color:var(--muted);margin:.7rem auto 0;max-width:80ch;text-align:center}
+  .viewer-close{position:absolute;top:.5rem;right:.5rem;font:500 .72rem/1 "IBM Plex Mono",monospace;letter-spacing:.06em;text-transform:uppercase;
+                color:var(--text);background:rgba(13,19,29,.85);border:1px solid var(--line);border-radius:999px;padding:.5rem .8rem;cursor:pointer}
+  /* ---------- ANTI-COPY LAYER (as on the portfolio) ---------- */
+  ::selection{background:transparent;color:inherit}
+  ::-moz-selection{background:transparent;color:inherit}
+
+  /* ---------- CONTENT PROTECTION ---------- */
+  html,body{
+    -webkit-touch-callout:none;            /* no iOS long-press copy/save menu */
+  }
+  *{
+    -webkit-user-select:none;
+    -moz-user-select:none;
+    -ms-user-select:none;
+    user-select:none;
+  }
+  img{
+    -webkit-user-drag:none;
+    -khtml-user-drag:none;
+    -moz-user-drag:none;
+    -o-user-drag:none;
+    user-drag:none;
+  }
+
+  /* Contact card stays selectable & copyable so visitors can always reach these */
+  .clink,.clink *{
+    -webkit-user-select:text;
+    -moz-user-select:text;
+    -ms-user-select:text;
+    user-select:text;
+    -webkit-touch-callout:default;
+  }
+
+  /* Neutralise print / print-to-PDF text capture */
+  @media print{
+    body *{visibility:hidden !important}
+    body::before{
+      content:"This page is protected. © Dr. George Constandinides — please view it online.";
+      visibility:visible;position:fixed;inset:0;display:block;padding:3rem;
+      font-family:"IBM Plex Mono",monospace;font-size:14px;line-height:1.6;color:#000;
+    }
+  }
+
+  /* Copy-attempt toast */
+  .copy-guard{
+    position:fixed;left:50%;bottom:1.5rem;transform:translate(-50%,160%);
+    z-index:9999;max-width:min(90vw,440px);
+    display:flex;align-items:center;gap:.7rem;
+    padding:.8rem 1.1rem;border-radius:8px;
+    background:rgba(13,19,29,0.92);border:1px solid var(--line);
+    -webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);
+    box-shadow:0 12px 40px rgba(0,0,0,0.45);
+    font-family:"IBM Plex Mono",monospace;font-size:.78rem;letter-spacing:.03em;
+    color:var(--text);line-height:1.45;
+    opacity:0;pointer-events:none;
+    transition:opacity .3s ease,transform .35s cubic-bezier(.2,.7,.2,1);
+  }
+  .copy-guard.show{opacity:1;transform:translate(-50%,0)}
+  .copy-guard .cg-dot{
+    width:8px;height:8px;border-radius:50%;flex:none;
+    background:radial-gradient(circle at 30% 30%,var(--cool),var(--hot));
+  }
+  @media (prefers-reduced-motion: reduce){
+    .copy-guard{transition:opacity .2s ease;transform:translate(-50%,0)}
+    .copy-guard:not(.show){opacity:0}
+  }
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="nav">
+  <div class="wrap">
+    <a class="brand" href="https://ckleanth.github.io/George_Constandinides/">G. Constandinides<span>.</span></a>
+    <ul>
+      <li><a href="#aim">Aim</a></li>
+      <li><a href="#video">On track</a></li>
+      <li><a href="#model">Model</a></li>
+      <li><a href="#data">Test data</a></li>
+      <li><a href="#match">Matching</a></li>
+      <li><a href="#checks">Checks</a></li>
+      <li><a href="#gc">Concept</a></li>
+      <li><a href="#credits">Credits</a></li>
+    </ul>
+  </div>
+</header>
+
+<main id="main">
+  <section class="hero">
+    <div class="wrap">
+      <div class="hero-grid">
+        <div>
+          <p class="eyebrow">Research project · vehicle dynamics · work in progress</p>
+          <h1>A track car designed from the ground up</h1>
+          <p class="lede">A track car designed from the ground up with vehicle dynamic response first. The concept is a road-legal track-day car featuring a steel space frame, benchmarked against the Caterham Seven SV - 150&nbsp;mm wider - and engineered from the vehicle handling targets outward.</p>
+          <p class="lede">The simulation and validation method was proven on a real vehicle first: a multibody model of the designer's own modified Mazda MX-5 NC was simulated around Achna Speedway using logged racing lines, throttle, gear shifts, and braking inputs, then correlated directly against real-world telemetry (logged GPS, OBD data such as throttle, rpm, gears, braking, etc.). Custom tyre models were also developed in-house using physical testing and available tyre data.</p>
+          <div class="tags"><span class="tag">PyChrono 10</span><span class="tag">Chrono::Vehicle</span><span class="tag">Multibody dynamics</span><span class="tag">Tyre models</span><span class="tag">Track data</span><span class="tag">Suspension design</span><span class="tag">Python</span><span class="tag">Chrono::Sensor</span></div>
+        </div>
+        <figure class="hero-media shot">
+          <button class="zoom" type="button" aria-label="Enlarge the render of the model under braking"><img src="assets/still2_braking.jpg" width="1920" height="1080" alt="Side view of a silver roadster drawn see-through, its suspension visible inside the wheel arches, braking on a yellow line painted on a pale concrete surface." decoding="async"></button>
+          <figcaption>The model braking at the end of Achna's straight: 97&nbsp;km/h in 2nd gear, decelerating at 1.11&nbsp;g. The body is drawn see-through over the model's suspension; the gold and yellow tubes are the coil-overs.</figcaption>
+          <p class="credit-line">Body: “<a href="https://sketchfab.com/3d-models/2009-mazda-mx-5-miata-nc-44f83bd458df4025b8daa7f6eeb36b1f">2009 Mazda MX-5 Miata (NC)</a>” by <a href="https://sketchfab.com/supercarmodels">DisneyCars</a>, <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>, modified (<a href="#credits">credits</a>).</p>
+        </figure>
+      </div>
+      <div class="stats">
+        <div class="stat"><div class="v"><em>1</em> grip factor</div><div class="k">λμ = 1.14 holds the whole logged line: every corner within 1&nbsp;m outside it</div></div>
+        <div class="stat"><div class="v"><em>83.04</em> s</div><div class="k">the model's lap, against the logged 84.04&nbsp;s on 1.91&nbsp;km of Achna Speedway</div></div>
+        <div class="stat"><div class="v"><em>0.59</em> m/s</div><div class="k">RMS speed difference from the log over the lap; 0.139&nbsp;g in lateral acceleration</div></div>
+        <div class="stat"><div class="v"><em>0.49–0.51</em> °/g</div><div class="k">the concept's understeer gradient with its decided suspension, in four load cases</div></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="aim">
+    <div class="wrap">
+      <div class="prose">
+        <p class="eyebrow">The aim</p>
+        <h2>A Lotus Seven class track car, designed from its handling targets</h2>
+        <p>The project concept began several years ago with a brief for a space-frame car very close to the Caterham Seven SV, but a bit wider: road-legal, for track days, and designed vehicle dynamics first, with the yaw dynamic index and tyre models at its core and multibody software to check the concept. The handling targets ask for a car that is predictable, not snappy:</p>
+        <ul>
+          <li>an understeer gradient of about 0.5&nbsp;°/g, in a band of 0.4 to 0.6&nbsp;°/g;</li>
+          <li>a yaw dynamic index DI = I<sub>zz</sub>/(m a b) of 0.89 to 0.91 as built;</li>
+          <li>a Seven-class unladen mass of at most 600&nbsp;kg;</li>
+          <li>15&nbsp;in road tyres, with semi-slicks for track days, and one test track: Achna Speedway in Cyprus.</li>
+        </ul>
+        <p>Before the multibody model is trusted, the method is proven on a real car. The designer's modified MX-5 NC is modelled in PyChrono, driven round Achna on his logged lap and checked against his data; its tyre calibration then carries over to the project concept tyres.</p>
+      </div>
+      <h3>The plan, phase by phase</h3>
+      <div class="phases">
+        <div class="phase"><span class="n">0</span><span class="t">Benchmark and design brief</span><span class="st done">done</span></div>
+        <div class="phase"><span class="n">1</span><span class="t">Vehicle dynamics concept</span><span class="st done">done</span></div>
+        <div class="phase"><span class="n">2</span><span class="t">Multibody model, calibrated on the MX-5</span><span class="st prog">in progress</span></div>
+        <div class="phase"><span class="n">3</span><span class="t">Suspension kinematics and compliance</span><span class="st prog">in progress</span></div>
+        <div class="phase"><span class="n">4</span><span class="t">Space frame</span><span class="st">to come</span></div>
+        <div class="phase"><span class="n">5</span><span class="t">Powertrain and packaging</span><span class="st prog">in progress</span></div>
+        <div class="phase"><span class="n">6</span><span class="t">CAD</span><span class="st">to come</span></div>
+        <div class="phase"><span class="n">7</span><span class="t">Detailed design and registration</span><span class="st">to come</span></div>
+      </div>
+      <div class="cards">
+        <div class="card"><div class="k">Work packages</div><h3>Nine so far</h3><p>From the concept and the suspension to the track logs, the dampers and the video, each with its brief, its report and its record.</p></div>
+        <div class="card"><div class="k">One home for every value</div><h3>Traceable numbers</h3><p>Every parameter sits in a data file beside its model, with its source; values that are not measured are marked as assumed. The project's documents are rendered from the data, and a check refuses a number typed by hand.</p></div>
+        <div class="card"><div class="k">Decisions on record</div><h3>Fourteen design decisions</h3><p>Among them the concept's suspension, the fuel tank's place, the gearboxes, the MX-5 model's rear suspension and the damping levels, each with the study behind it.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="video">
+    <div class="wrap">
+      <div class="prose">
+        <p class="eyebrow">On track</p>
+        <h2>The end of the lap, as the model drives it</h2>
+        <p>Nineteen seconds of the calibrated run, from 61 to 80&nbsp;s into the lap: the end of the straight at up to 140&nbsp;km/h, the braking down to 2nd gear, then corners 9, 10 and 11. The car's position in every frame is the simulation's own; Chrono::Sensor's GPU ray tracer renders the frames off-screen. A see-through body shell shows the suspension at work, and the yellow ribbon is the line the model follows.</p>
+      </div>
+      <figure class="vid">
+        <video controls muted playsinline preload="none" width="1920" height="1080" poster="assets/mx5_achna_corners9-11_poster.jpg" aria-label="A see-through silver roadster drives along a yellow line, brakes hard in side view, then takes a right, a left and a long right-hander; a panel shows its speed, gear, pedals and accelerations.">
+          <source src="assets/mx5_achna_corners9-11_web.mp4" type="video/mp4">
+        </video>
+        <figcaption><span class="mono">Video</span>23.6&nbsp;s, no sound. The overlay shows the model's speed, gear, brake input and accelerations; the throttle bar is the logged pedal, closed in the logged braking zones. The ground and sky are Chrono's, not Achna's.</figcaption>
+        <p class="credit-line">Body: “<a href="https://sketchfab.com/3d-models/2009-mazda-mx-5-miata-nc-44f83bd458df4025b8daa7f6eeb36b1f">2009 Mazda MX-5 Miata (NC)</a>” by <a href="https://sketchfab.com/supercarmodels">DisneyCars</a>, <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>, modified (<a href="#credits">credits</a>).</p>
+      </figure>
+      <figure class="vid">
+        <div class="embed" id="ytOnboard" data-video="zBJZqCkFkdo" data-start="329" data-end="349">
+          <button class="yt-poster" type="button" aria-label="Play the onboard video of the same stretch on YouTube, 5:29 to 5:49">
+            <img src="https://i.ytimg.com/vi/zBJZqCkFkdo/maxresdefault.jpg" alt="" loading="lazy" decoding="async">
+            <span class="yt-grad" aria-hidden="true"></span>
+            <span class="yt-play" aria-hidden="true"><svg viewBox="0 0 68 48" width="64" height="46" focusable="false"><path d="M66.5 7.7c-.8-2.9-2.5-5.2-5.4-6C55.8.5 34 .5 34 .5S12.2.5 6.9 1.7C4 2.5 2.3 4.8 1.5 7.7.3 13 .3 24 .3 24s0 11 1.2 16.3c.8 2.9 2.5 5.2 5.4 6C12.2 47.5 34 47.5 34 47.5s21.8 0 27.1-1.2c2.9-.8 4.6-3.1 5.4-6C67.7 35 67.7 24 67.7 24s0-11-1.2-16.3z" fill="#FF5E3A"/><path d="M27 34l18-10-18-10z" fill="#080B11"/></svg></span>
+            <span class="yt-label mono">Onboard · 5:29 to 5:49</span>
+          </button>
+        </div>
+        <figcaption><span class="mono">Onboard</span>The same stretch on the real car: the designer's MX-5 at Achna Speedway on 30&nbsp;May&nbsp;2026, the day of the logged lap, from 5:29 to 5:49 of the onboard video on YouTube. Nothing from YouTube loads until you press play.</figcaption>
+      </figure>
+      <div class="gallery">
+        <figure class="shot">
+          <button class="zoom" type="button" aria-label="Enlarge Fig. 1"><img src="assets/still1_straight.jpg" width="1920" height="1080" alt="Chase view from behind and above: the see-through car on a yellow line that curves away to the left in the distance." loading="lazy" decoding="async"></button>
+          <figcaption><span class="mono">Fig. 1</span>On the straight: 122&nbsp;km/h in 3rd gear.</figcaption>
+        </figure>
+        <figure class="shot">
+          <button class="zoom" type="button" aria-label="Enlarge Fig. 2"><img src="assets/still3_corner9.jpg" width="1920" height="1080" alt="Chase view: the car turning right along the yellow line, its rear coil-overs and links visible through the body." loading="lazy" decoding="async"></button>
+          <figcaption><span class="mono">Fig. 2</span>Corner 9, the right-hander after the braking: 60&nbsp;km/h at its slowest.</figcaption>
+        </figure>
+        <figure class="shot">
+          <button class="zoom" type="button" aria-label="Enlarge Fig. 3"><img src="assets/still4_corner11.jpg" width="1920" height="1080" alt="Chase view: the car in a long right-hand bend, the yellow line sweeping off to the right." loading="lazy" decoding="async"></button>
+          <figcaption><span class="mono">Fig. 3</span>Corner 11, the long right-hander drifted on the logged lap: 49&nbsp;km/h at its slowest.</figcaption>
+        </figure>
+      </div>
+      <p class="credit-line">Figs. 1 to 3 and the picture at the top are renders of the simulation. Body: “<a href="https://sketchfab.com/3d-models/2009-mazda-mx-5-miata-nc-44f83bd458df4025b8daa7f6eeb36b1f">2009 Mazda MX-5 Miata (NC)</a>” by <a href="https://sketchfab.com/supercarmodels">DisneyCars</a>, <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>, modified (<a href="#credits">credits</a>).</p>
+      <p class="hint">Select any figure to enlarge it.</p>
+    </div>
+  </section>
+
+  <section class="section" id="model">
+    <div class="wrap">
+      <div class="prose">
+        <p class="eyebrow">The proving car</p>
+        <h2>The designer's MX-5 NC in Chrono::Vehicle</h2>
+        <p>A 2010 Mazda MX-5 NC2 with the 2.0 engine on a BBR Super 185 map, Öhlins Road &amp; Track coil-overs, extra chassis braces, race brake pads, Mazda's Super LSD and Michelin Pilot Sport 5 tyres (215/45 R17), corner-weighted. The model is built in PyChrono 10, the Python interface of Project Chrono's Chrono::Vehicle module.</p>
+      </div>
+      <div class="split">
+        <div class="tbl" style="margin-top:0">
+          <table class="facts">
+            <tr><th scope="row">Mass, driver in</th><td>1,295&nbsp;kg, from a mass and inertia build-up</td></tr>
+            <tr><th scope="row">Wheelbase, tracks</th><td>2.33&nbsp;m; 1.49&nbsp;m front, 1.495&nbsp;m rear</td></tr>
+            <tr><th scope="row">Front suspension</th><td>double wishbone on NC2 hardpoints (best estimate)</td></tr>
+            <tr><th scope="row">Rear suspension</th><td>five-link, with five link bodies, on NC2 hardpoints (best estimate)</td></tr>
+            <tr><th scope="row">Springs</th><td>Öhlins, 70 / 40&nbsp;N/mm; 41.1 / 35.8&nbsp;N/mm at the wheel</td></tr>
+            <tr><th scope="row">Dampers</th><td>two stages per direction: damping ratio 0.60 / 0.35</td></tr>
+            <tr><th scope="row">Anti-roll bars</th><td>Mazda Sport, 21.0 / 12.0&nbsp;mm</td></tr>
+            <tr><th scope="row">Tyres</th><td>TMeasy with an assumed parameter set and one grip scale, λμ</td></tr>
+            <tr><th scope="row">Engine</th><td>the BBR torque curve; throttle map and inertia, 0.51&nbsp;kg&nbsp;m², fitted to the logs</td></tr>
+            <tr><th scope="row">Driveline</th><td>Mazda Super LSD, final drive 3.727</td></tr>
+            <tr><th scope="row">Aerodynamics</th><td>drag area C<sub>D</sub>A 0.65&nbsp;m²</td></tr>
+          </table>
+        </div>
+        <ul class="notes">
+          <li><strong>The driver.</strong> Chrono's path follower steers the designer's line; his logged throttle, gears and clutch drive the car, and in his logged braking zones the brakes give his logged deceleration.</li>
+          <li><strong>The geometry.</strong> A best-estimate set of hardpoints fitted to Mazda's NC2 alignment tables, with his alignment and an assumed 30&nbsp;mm ride lowering: front roll centre 46&nbsp;mm and rear 17&nbsp;mm below the ground.</li>
+          <li><strong>The dampers.</strong> No force–velocity curves are published for the kit: two slopes per direction, damping ratio 0.60 below a knee of 0.20&nbsp;m/s and 0.35 above it, rebound 1.5 times bump.</li>
+          <li><strong>The driveline.</strong> The LSD is a friction torque between the rear half-shafts with Mazda's figures, and the engine and gearbox's reaction acts on the body at every step.</li>
+        </ul>
+      </div>
+      <h3>How the model grew, each step checked against the logs</h3>
+      <ol class="timeline">
+        <li><span class="d">17 Nov</span><span>The first lap on the logged path at the logged speed, on Chrono's sedan suspension templates scaled to the NC's tracks.</span></li>
+        <li><span class="d">19 Nov</span><span>The anti-roll bars corrected; corner 11's path rebuilt for the slide.</span></li>
+        <li><span class="d">20 Nov</span><span>The designer's own throttle, gears and clutch drive the model; the LSD and the rear bar fixed; the NC2 geometry.</span></li>
+        <li><span class="d">23 Nov</span><span>The engine inertia fitted to the logs, two-stage dampers, the rear coil-over's lever ratio, the solvers made to agree, the five-link rear; driving-simulator tyre and powertrain data as cross-checks.</span></li>
+        <li><span class="d">24 Nov</span><span>The anti-roll bars' drop links in place, the driveline's reaction on the body, and the damping levels: the current runs.</span></li>
+      </ol>
+    </div>
+  </section>
+
+  <section class="section" id="data">
+    <div class="wrap">
+      <p class="eyebrow">The test data</p>
+      <h2>One logged lap of Achna Speedway</h2>
+      <div class="split">
+        <div class="prose">
+          <p>The logs come from RaceChrono: GPS, the phone's accelerometer and gyroscope, and the car's OBD channels (speed, rpm, throttle). The calibration lap is lap 5 of 30 May 2026: 84.04&nbsp;s on a 1.91&nbsp;km lap run clockwise, with 11 corners and speeds from 48 to 135&nbsp;km/h.</p>
+          <ul>
+            <li><strong>The line</strong> is rebuilt from the gyroscope's curvature and the speed along the lap.</li>
+            <li><strong>Corner 11 was drifted on purpose.</strong> There V·r, speed times yaw rate, reaches 1.70&nbsp;g while the accelerometer reads 1.06&nbsp;g: the car yawed faster than its path turned. The model's path takes that corner from the accelerometer and asks 1.10&nbsp;g.</li>
+            <li><strong>The GPS speed failed</strong> in a slow corner, falling to 21&nbsp;km/h while the OBD speed, the rpm and the accelerometer showed 60 to 72&nbsp;km/h. The dynamics read the OBD speed, scaled to the GPS on the fast parts.</li>
+            <li><strong>Hot tyres.</strong> Lap 5 came while the tyres were fading: from lap 4 the lateral grip fell by 5&nbsp;% and the traction by 9&nbsp;%, so the calibrated grip is that of hot tyres.</li>
+          </ul>
+        </div>
+        <figure class="shot light">
+          <button class="zoom" type="button" aria-label="Enlarge Fig. 4"><img src="assets/fig01_achna_line.png" width="1096" height="1171" alt="Plan view of the circuit as a blue line, darker where faster, with corners numbered 1 to 11, a start-finish mark, and a grey band along the long straight and the last three corners." loading="lazy" decoding="async"></button>
+          <figcaption><span class="mono">Fig. 4</span>Achna Speedway: the designer's line, coloured by his logged speed from 48 to 135&nbsp;km/h, with the corners numbered. The grey band is the stretch in the video.</figcaption>
+        </figure>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="match">
+    <div class="wrap">
+      <div class="prose">
+        <p class="eyebrow">Matching the test data</p>
+        <h2>One grip factor holds the whole line</h2>
+        <p>The model drives the designer's line on his throttle, gears and braking at eight grip scales, from 1.11 to 1.18. The calibrated grip is the lowest at which every corner stays within 1&nbsp;m outside his line, with every higher grip doing the same: 1.14.</p>
+      </div>
+      <figure class="shot light">
+        <button class="zoom" type="button" aria-label="Enlarge Fig. 5"><img src="assets/fig05_calibration.png" width="1788" height="779" alt="Two plots against the grip scale from 1.11 to 1.18: the widest offset outside the line falls from 1.88 to 0.30 m, crossing 1 m between 1.13 and 1.14; the lap time falls from 83.6 to 82.5 s, below the logged 84.04 s." loading="lazy" decoding="async"></button>
+        <figcaption><span class="mono">Fig. 5</span>(a) The widest offset outside the designer's line over the lap and (b) the lap time, against the grip scale λμ; the circle marks the calibrated run. Corner 11 is the widest corner at every grip.</figcaption>
+      </figure>
+      <div class="split">
+        <div>
+          <h3>The calibrated run against the log</h3>
+          <div class="tbl">
+            <table class="data">
+              <thead><tr><th scope="col">Quantity</th><th scope="col">Model</th><th scope="col">Log</th></tr></thead>
+              <tbody>
+                <tr><th scope="row">Lap time</th><td>83.04&nbsp;s</td><td>84.04&nbsp;s</td></tr>
+                <tr><th scope="row">Speed, RMS difference</th><td>0.59&nbsp;m/s</td><td></td></tr>
+                <tr><th scope="row">V·r, RMS difference</th><td>0.139&nbsp;g</td><td></td></tr>
+                <tr><th scope="row">Yaw rate, RMS difference</th><td>0.072&nbsp;rad/s</td><td></td></tr>
+                <tr><th scope="row">Peak V·r, left</th><td>0.92&nbsp;g</td><td>0.97&nbsp;g</td></tr>
+                <tr><th scope="row">Peak V·r, right</th><td>1.02&nbsp;g</td><td>1.26&nbsp;g</td></tr>
+                <tr><th scope="row">Widest outside the line</th><td>0.92&nbsp;m</td><td></td></tr>
+                <tr><th scope="row">Offset, RMS</th><td>0.67&nbsp;m</td><td></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="tnote">The comparison skips the first 3&nbsp;s of the run, the start transient; the peaks are extreme percentiles.</p>
+        </div>
+        <ul class="notes">
+          <li><strong>Speed.</strong> The lowest speeds of the corners agree within 2.1&nbsp;km/h. Over the lap the model is 1.00&nbsp;s quicker, 0.24&nbsp;s of it on the long straight, where it reaches 140&nbsp;km/h against the log's 135.</li>
+          <li><strong>Braking.</strong> The model reaches the braking zone before corner 9 faster, and its brakes follow the logged speed there: it decelerates at up to 1.11&nbsp;g against the log's 0.93&nbsp;g.</li>
+          <li><strong>Lateral acceleration.</strong> V·r follows the log through the corners, except in corner 11, where the log's V·r includes the yaw of the slide.</li>
+          <li><strong>The line.</strong> The model stays within 1&nbsp;m outside the line in every corner; corner 11 is the widest, at 0.92&nbsp;m.</li>
+          <li><strong>Corner by corner.</strong> The log's peak V·r is clearly higher only in corners 4 and 11: 1.10 and 1.70&nbsp;g against the model's 0.97 and 1.01&nbsp;g.</li>
+        </ul>
+      </div>
+      <figure class="shot light">
+        <button class="zoom" type="button" aria-label="Enlarge Fig. 6"><img src="assets/fig02_speed.png" width="1531" height="797" alt="Speed against distance along the lap: the blue log and orange model lines lie almost on top of each other, the model slightly faster at the end of the long straight." loading="lazy" decoding="async"></button>
+        <figcaption><span class="mono">Fig. 6</span>Speed along the lap: the log (blue) and the calibrated model (orange); the grey bands are the corners.</figcaption>
+      </figure>
+      <figure class="shot light">
+        <button class="zoom" type="button" aria-label="Enlarge Fig. 7"><img src="assets/fig03_lateral.png" width="1539" height="797" alt="Lateral acceleration against distance: the log and model lines follow each other through every corner; only at corner 11 does the log dip to about minus 1.7 g." loading="lazy" decoding="async"></button>
+        <figcaption><span class="mono">Fig. 7</span>Lateral acceleration V·r (speed times yaw rate) along the lap, from the log's gyroscope and from the model.</figcaption>
+      </figure>
+      <figure class="shot light">
+        <button class="zoom" type="button" aria-label="Enlarge Fig. 8"><img src="assets/fig04_line_offset.png" width="1538" height="748" alt="The model's offset from the line against distance: mostly between minus 1 and 0 m, rising to 0.92 m outside the line at corner 11, inside a shaded band of plus and minus 1 m." loading="lazy" decoding="async"></button>
+        <figcaption><span class="mono">Fig. 8</span>The calibrated model's offset from the designer's line, positive outside the corner; the shaded band is ±1&nbsp;m.</figcaption>
+      </figure>
+      <figure class="shot light">
+        <button class="zoom" type="button" aria-label="Enlarge Fig. 9"><img src="assets/fig06_corners.png" width="1669" height="913" alt="Two scatter plots, model against log for each corner: the lowest speeds lie on the line of equality; the peak lateral accelerations cluster near it, with corners 4 and 11 below it." loading="lazy" decoding="async"></button>
+        <figcaption><span class="mono">Fig. 9</span>Corner by corner, the log (horizontal) against the model (vertical): (a) the lowest speed, (b) the peak V·r. On the grey line the two are equal.</figcaption>
+      </figure>
+      <figure class="shot light narrow">
+        <button class="zoom" type="button" aria-label="Enlarge Fig. 10"><img src="assets/fig07_gg.png" width="1087" height="1142" alt="Longitudinal against lateral acceleration: blue and orange dots fill the same area inside the 1 g circle, the model's braking points reaching a little lower." loading="lazy" decoding="async"></button>
+        <figcaption><span class="mono">Fig. 10</span>Longitudinal against lateral acceleration over the lap: the log (blue) and the model (orange), with circles at 0.5 and 1&nbsp;g; braking points downwards.</figcaption>
+      </figure>
+      <div class="lesson"><span class="mono">What the calibration means</span>λμ is the grip the designer's lap needed with this driver model and the assumed tyre. Where he drove below the limit it is a lower bound; the tyre's cornering stiffness, load sensitivity and slip at the peak are not measured.</div>
+    </div>
+  </section>
+
+  <section class="section" id="checks">
+    <div class="wrap">
+      <div class="prose">
+        <p class="eyebrow">Virtual tests</p>
+        <h2>What the tests caught</h2>
+        <p>Virtual tests check the model's parts before it is set against the logs. A slow ramp steer at 20&nbsp;m/s gives an understeer gradient of 0.83&nbsp;°/g with the LSD and 0.37&nbsp;°/g with an open differential. The roll gradient is 3.16&nbsp;°/g at 20&nbsp;m/s and 3.12&nbsp;°/g at 30&nbsp;m/s, and the front takes 59&nbsp;% of the elastic roll stiffness. With a second tyre model from another source, the model holds the line from a grip scale of 1.17, that tyre's own level at its best temperature (1.171), so the calibration carries over to the concept's tyres.</p>
+        <p>Each fault the tests found was fixed, and every calibration and test run again:</p>
+      </div>
+      <div class="cards six">
+        <div class="card"><div class="k">Anti-roll bars</div><h3>Drop links at twice their distance</h3><p><b>Found:</b> the roll gradient rose with speed, from 3.18&nbsp;°/g at 20&nbsp;m/s to 4.28&nbsp;°/g at 30&nbsp;m/s. Chrono reads a bar's arm as one arm, from its centre to its drop link; the model had given it the whole span.</p><p><b>Fix:</b> the drop links in place, the bar rates set anew.</p><p><b>Result:</b> 3.16 and 3.12&nbsp;°/g; the calibrated grip unchanged.</p></div>
+        <div class="card"><div class="k">Solvers</div><h3>Direct solvers locked the rear axle</h3><p><b>Found:</b> 1.625&nbsp;°/g of understeer on Pardiso against 0.852&nbsp;°/g on the default solver. The direct solvers held the driveline's differential-locking clutch rigid.</p><p><b>Fix:</b> that clutch, which the model never engages, disabled.</p><p><b>Result:</b> both solvers give 0.852&nbsp;°/g.</p></div>
+        <div class="card"><div class="k">Driveline</div><h3>The propshaft torque rolled the body</h3><p><b>Found:</b> in a straight line the tyres' roll moment followed the propshaft torque, 0.994 for one: the simple engine model puts no reaction on the body.</p><p><b>Fix:</b> the engine and gearbox's reaction applied at every step.</p><p><b>Result:</b> −0.008 for one; the calibrated grip unchanged.</p></div>
+        <div class="card"><div class="k">Differential and bars</div><h3>The LSD never engaged</h3><p><b>Found:</b> every early run had an open differential, and the front took 72&nbsp;% of the roll moment against an intended 61&nbsp;%.</p><p><b>Fix:</b> the LSD with Mazda's figures, and the bars set per axle by a static roll test.</p><p><b>Result:</b> with the NC2 geometry, the line held in all 11 corners.</p></div>
+        <div class="card"><div class="k">Driver model</div><h3>Throttle that made power understeer</h3><p><b>Found:</b> on corner 4's exit the front slip reached 18.5°, where the real car never understeered.</p><p><b>Fix:</b> the logged throttle, gears and clutch drive the car; the path follower only steers.</p><p><b>Result:</b> 7.1° of front slip on the same exit.</p></div>
+        <div class="card"><div class="k">Test data</div><h3>GPS speed that failed</h3><p><b>Found:</b> for about 4&nbsp;s the GPS speed fell to 21&nbsp;km/h while the OBD speed, the rpm and the accelerometer showed 60 to 72&nbsp;km/h.</p><p><b>Fix:</b> the OBD speed, scaled to the GPS on the fast parts.</p><p><b>Result:</b> the dynamics read the OBD speed in every session that has it.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="gc">
+    <div class="wrap">
+      <div class="prose">
+        <p class="eyebrow">The concept</p>
+        <h2>Three designs and a decided suspension</h2>
+        <p>Phase-1 models in Python set the concept: a mass and inertia build-up, Fiala and Magic Formula tyres, the bicycle model and its understeer budget, a two-degree-of-freedom yaw and sideslip model (step steer, steer reversal), the quarter car and the pitch plane for ride, and a quasi-steady lap. Making the car up to 150&nbsp;mm wider than the Seven SV raises its grip by only 0.003&nbsp;g, and on a synthetic test track the wider car gains 0.010&nbsp;s a lap on road tyres; the designs analysed so far take the SV's track plus 50&nbsp;mm, 1.496&nbsp;m.</p>
+        <h3>Three designs</h3>
+        <ul>
+          <li><strong>A</strong>, the lead design: a Ford Duratec 2.0 at the concept's width.</li>
+          <li><strong>B</strong>: a Ford Duratec 2.5 at A's width, with a close-ratio 6-speed gearbox.</li>
+          <li><strong>C</strong>: a Ford Coyote 5.0 V8 car of the MX-5 NC's size, on 17&nbsp;in wheels.</li>
+        </ul>
+        <p>Every design has its gearbox behind the flywheel with a propshaft, and the fuel tank behind the driver's bulkhead, near the centre of mass. In load case T75, a 75&nbsp;kg driver and half a tank:</p>
+      </div>
+      <div class="tbl">
+        <table class="data">
+          <thead><tr><th scope="col">Design</th><th scope="col">Unladen</th><th scope="col">Front axle, driver in</th><th scope="col">Understeer</th><th scope="col">DI as built</th></tr></thead>
+          <tbody>
+            <tr><th scope="row">A</th><td>592&nbsp;kg</td><td>51.0&nbsp;%</td><td>0.53&nbsp;°/g</td><td>0.79 to 0.88</td></tr>
+            <tr><th scope="row">B</th><td>597&nbsp;kg</td><td>51.3&nbsp;%</td><td>0.54&nbsp;°/g</td><td>0.79 to 0.88</td></tr>
+            <tr><th scope="row">C</th><td>894&nbsp;kg</td><td>51.8&nbsp;%</td><td>0.76&nbsp;°/g</td><td>0.82 to 0.92</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="prose">
+        <ul>
+          <li><strong>Understeer and mass:</strong> A and B lie in the understeer band and within the Seven class; C is heavier and waits for its own suspension.</li>
+          <li><strong>Balance:</strong> all three carry a little more on the front axle than the brief's assumed 47 to 50&nbsp;%.</li>
+          <li><strong>Dynamic index:</strong> all three fall short of the target as built. Dead weight at the rear, about 28&nbsp;kg for A and B and 18&nbsp;kg for C, brings each to 0.89; every 10&nbsp;kg at the rear end adds 0.020.</li>
+        </ul>
+        <p>The yaw dynamic index compares the car's yaw inertia with that of the same mass split between its two axles. At one, each axle responds to its own tyre forces without moving the other; below one, the car responds more quickly in yaw. NHTSA's measured vehicles give the context: 121 passenger cars from 0.91 to 1.18 (5th to 95th percentile) and 7 sports cars from 0.94 to 1.17. The concept's designs, with their mass between the axles, sit lower; no measured inertia of a Seven-type car was found.</p>
+      </div>
+      <figure class="shot light">
+        <button class="zoom" type="button" aria-label="Enlarge Fig. 11"><img src="assets/fig09_dynamic_index.png" width="1821" height="1120" alt="Horizontal ranges of the yaw dynamic index: NHTSA passenger cars from about 0.91 to 1.18 and seven measured cars as dots above 0.94; the three GC designs as orange bars from about 0.79 to 0.92, against a target band at 0.89 to 0.91." loading="lazy" decoding="async"></button>
+        <figcaption><span class="mono">Fig. 11</span>Yaw dynamic index: NHTSA's measured cars (blue) and the concept's three designs as built (orange, labelled GC), against the target band. “As built” divides the mass build-up's index by the ratios found on the designer's MX-5, 82 to 92&nbsp;% (the legend's WP06, the inertia study of the MX-5); the build-up is assumed item by item.</figcaption>
+      </figure>
+      <div class="prose">
+        <h3>The decided suspension</h3>
+        <p>Double wishbones at the front and a de Dion axle at the rear located by an A-frame, as on the SV, with polyurethane wishbone bushes of 3.33&nbsp;kN/mm (measured). Decided on 23 November 2026:</p>
+        <ul>
+          <li>the steering rack ahead of the axle, and a rear anti-roll bar;</li>
+          <li>rear roll steer −0.095&nbsp;deg/deg and rear anti-squat 28&nbsp;%;</li>
+          <li>the front bar on 200&nbsp;mm levers, and nearly parallel steering;</li>
+          <li>in load case T75: ride frequencies of 1.81&nbsp;Hz front and 2.00&nbsp;Hz rear on the springs, a roll gradient of 0.82&nbsp;°/g, and 56&nbsp;% of the lateral load transfer at the front.</li>
+        </ul>
+        <p>The understeer budget adds Gillespie's terms: the tyres, camber, roll steer, compliance steer, aligning torque, load transfer and the steering's compliance. It totals 0.494&nbsp;°/g in load case T75, and 0.494 to 0.507&nbsp;°/g over the four load cases.</p>
+      </div>
+      <figure class="shot light mid">
+        <button class="zoom" type="button" aria-label="Enlarge Fig. 12"><img src="assets/fig08_gc_budget.png" width="1649" height="816" alt="Horizontal bar chart of seven contributions to the understeer gradient, the largest about 0.12 degrees per g each, and a total bar of 0.494 degrees per g inside a shaded band from 0.4 to 0.6." loading="lazy" decoding="async"></button>
+        <figcaption><span class="mono">Fig. 12</span>The concept's understeer budget with the decided suspension, load case T75: each term's contribution and the total, against the target band.</figcaption>
+      </figure>
+      <div class="prose">
+        <h3>Dampers</h3>
+        <p>Two stages per direction, at the damping levels of the MX-5's Öhlins: a damping ratio of 0.60 below a knee of 0.20&nbsp;m/s of damper speed and 0.35 above it, on the spring's wheel rate, for every design of the concept and the MX-5 model. Rebound is 1.37 times bump, the mean of Milliken's racing figures. At the dampers, bump / rebound below the knee: 2,752 / 3,771&nbsp;N&nbsp;s/m at the front and 1,932 / 2,646&nbsp;N&nbsp;s/m at the rear; above it 1,606 / 2,200 and 1,127 / 1,544&nbsp;N&nbsp;s/m.</p>
+      </div>
+      <figure class="shot light">
+        <button class="zoom" type="button" aria-label="Enlarge Fig. 13"><img src="assets/fig10_damping.png" width="1845" height="840" alt="Ranges of the body's damping ratio by vehicle class, from passenger cars at 0.2 to 0.4 up to race cars with downforce at 0.7 to 1.1, with the project's two levels marked at 0.35 and 0.60." loading="lazy" decoding="async"></button>
+        <figcaption><span class="mono">Fig. 13</span>Damping ratios of the body as single-mass ratios: the ranges by vehicle class from Gillespie, Milliken and Milliken, Kasprzak and Ortiz, and the project's two levels. The first stage lies in the range for track cars without downforce; the second inside Milliken's range for sports cars.</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <section class="section" id="status">
+    <div class="wrap">
+      <p class="eyebrow">Status</p>
+      <h2>Work in progress: the state on 24&nbsp;November&nbsp;2026</h2>
+      <div class="split">
+        <div class="prose">
+          <h3>Limits</h3>
+          <ul>
+            <li>The MX-5's suspension geometry is a best estimate, not measured; the front coil-over's lever ratio, 0.78 from the literature, and the 30&nbsp;mm ride lowering stay assumed until the ride heights are measured.</li>
+            <li>The tyre is an assumed TMeasy set with one grip factor; its cornering stiffness is not measured.</li>
+            <li>Not modelled: ABS and EBD, and Achna's elevation and camber.</li>
+            <li>The driver model steers a fixed line; it does not drift as the logged lap did in corner 11.</li>
+            <li>The concept's figures rest on a mass build-up assumed item by item and on design values: they are not tests of a built car.</li>
+          </ul>
+        </div>
+        <div class="prose">
+          <h3>Next</h3>
+          <ol>
+            <li>calibrate on lap 4, the tyres' best, and compare with lap 5;</li>
+            <li>a better driver model for the tight corners;</li>
+            <li>an iterative limit lap against the logged lap;</li>
+            <li>designs A, B and C on the Achna path, with the grip from hot tyres to their best;</li>
+            <li>the concept's own suspension geometry and A-frame de Dion axle in the multibody model; then the space frame, the packaging and CAD.</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="credits">
+    <div class="wrap">
+      <div class="prose">
+        <p class="eyebrow">Sources and credits</p>
+        <h2>Credits</h2>
+        <ul class="credits">
+          <li><strong>Body shell in the renders and the video.</strong> This work is based on “2009 Mazda MX-5 Miata (NC)” (<a href="https://sketchfab.com/3d-models/2009-mazda-mx-5-miata-nc-44f83bd458df4025b8daa7f6eeb36b1f">sketchfab.com/3d-models/2009-mazda-mx-5-miata-nc-44f83bd458df4025b8daa7f6eeb36b1f</a>) by DisneyCars (<a href="https://sketchfab.com/supercarmodels">sketchfab.com/supercarmodels</a>), licensed under CC BY 4.0 (<a href="https://creativecommons.org/licenses/by/4.0/">creativecommons.org/licenses/by/4.0</a>). Changes: interior removed; the wheels taken off the body, and the front-left wheel (tyre, rim, brake disc) re-centred on its hub to turn with the model's wheels; converted to OBJ; drawn see-through; stretched in length to the model's wheelbase.</li>
+          <li><strong>Simulation.</strong> Project Chrono (<a href="https://projectchrono.org">projectchrono.org</a>): PyChrono 10.0.0, with Chrono::Vehicle for the multibody models and Chrono::Sensor for the renders.</li>
+          <li><strong>Test data.</strong> The designer's own RaceChrono logs of his MX-5 NC at Achna Speedway, 30 May 2026.</li>
+          <li><strong>Measured inertias.</strong> Heydinger, Bixel, Garrott, Pyne, Howe and Guenther, “Measured Vehicle Inertial Parameters - NHTSA's Data Through November 1998”, SAE 1999-01-1336.</li>
+          <li><strong>Damping ranges.</strong> Milliken and Milliken, <em>Race Car Vehicle Dynamics</em>, SAE R-146 (1995); Gillespie, <em>Fundamentals of Vehicle Dynamics</em>, SAE; J. Kasprzak, “Understanding your Dampers: A guide from Jim Kasprzak”, Kaz Technologies; M. Ortiz, The Mark Ortiz Automotive Chassis Newsletter, January 2009, “Damping ratio”.</li>
+          <li><strong>Software.</strong> Python with NumPy, SciPy, pandas and Matplotlib for the models' analysis and the charts; FFmpeg for the video.</li>
+          <li><strong>Status.</strong> A project in progress: simulation results and design values, not tests of a built car. Values called assumed are estimates, not measurements.</li>
+        </ul>
+      </div>
+      <div class="btns">
+        <a class="btn primary" href="https://ckleanth.github.io/George_Constandinides/">Portfolio ↗</a>
+        <a class="btn" href="https://ckleanth.github.io/Plasma_Jet_Simulation/">Simulating a cold plasma jet ↗</a>
+        <a class="btn" href="https://ckleanth.github.io/CFD_Applied_Thermodynamics/">CFD in Applied Thermodynamics ↗</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>© 2026 Dr George Constandinides</span>
+    <span><a href="https://ckleanth.github.io/George_Constandinides/">Portfolio</a> · <a href="https://www.youtube.com/ckleanth">YouTube</a> · <a href="https://www.linkedin.com/in/georgeconstandinides/">LinkedIn</a></span>
+  </div>
+</footer>
+
+<dialog class="viewer" id="viewer" aria-label="Enlarged picture">
+  <button class="viewer-close" type="button">Close</button>
+  <img id="viewer-img" alt="">
+  <p id="viewer-cap"></p>
+</dialog>
+
+<script>
+/* Picture viewer: a picture opens enlarged with its caption; a click, the button or Escape closes it. */
+(function(){
+  var d=document.getElementById('viewer');
+  if(!d||typeof d.showModal!=='function') return;
+  var im=document.getElementById('viewer-img'), cap=document.getElementById('viewer-cap');
+  Array.prototype.forEach.call(document.querySelectorAll('button.zoom'),function(btn){
+    btn.addEventListener('click',function(){
+      var i=btn.querySelector('img'), f=btn.closest('figure'), c=f?f.querySelector('figcaption'):null;
+      var lab=c?c.querySelector('.mono'):null, t=c?c.textContent:'';
+      im.src=i.currentSrc||i.src; im.alt=i.alt;
+      im.className=(f&&f.classList.contains('light'))?'light':'';
+      cap.textContent=lab?lab.textContent+' · '+t.slice(lab.textContent.length):t;
+      d.showModal();
+    });
+  });
+  d.addEventListener('click',function(e){ if(e.target!==cap) d.close(); });
+  d.addEventListener('close',function(){ im.removeAttribute('src'); });
+})();
+/* Onboard video: YouTube's player loads only on click, as on the portfolio. A page opened from disk (file://) cannot send
+   the HTTP referrer that YouTube requires (its Error 153), so there the video opens on YouTube at 5:29 instead; served over
+   http(s), as on GitHub Pages, the player loads in place and plays 5:29 to 5:49. */
+(function(){
+  var fac=document.getElementById('ytOnboard');
+  if(!fac) return;
+  var btn=fac.querySelector('.yt-poster');
+  if(!btn) return;
+  var vid=fac.getAttribute('data-video'), s=fac.getAttribute('data-start'), e=fac.getAttribute('data-end');
+  btn.addEventListener('click',function(){
+    if(location.protocol==='file:'){ window.open('https://www.youtube.com/watch?v='+vid+'&t='+s+'s','_blank','noopener'); return; }
+    var f=document.createElement('iframe');
+    f.src='https://www.youtube-nocookie.com/embed/'+vid+'?start='+s+'&end='+e+'&rel=0&autoplay=1&playsinline=1';
+    f.title='Onboard video of the same stretch, Achna Speedway, 30 May 2026';
+    f.allow='accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
+    f.setAttribute('referrerpolicy','strict-origin-when-cross-origin');
+    f.setAttribute('allowfullscreen','');
+    fac.innerHTML='';
+    fac.appendChild(f);
+  });
+})();
+</script>
+<script>
+/* ---------- Content protection + reliable contact actions ---------- */
+(function(){
+  var NOTICE = '\u00A9 Dr. George Constandinides \u2014 Mechanical Engineer.\n'
+             + 'This content is protected.';
+  function attribution(){
+    var http = (location.protocol === 'http:' || location.protocol === 'https:');
+    return NOTICE + (http ? '\nOriginal: ' + location.href : '');
+  }
+
+  /* The contact card is deliberately exempt — visitors must be able to reach these */
+  function inContact(node){
+    while(node){
+      if(node.nodeType === 1 && node.classList && node.classList.contains('clink')) return true;
+      node = node.parentNode;
+    }
+    return false;
+  }
+  function selectionInContact(){
+    var sel = window.getSelection && window.getSelection();
+    if(!sel || sel.rangeCount === 0) return false;
+    return inContact(sel.anchorNode) || inContact(sel.focusNode);
+  }
+
+  /* Restrained toast, built from the page's own tokens */
+  var toast, msgEl, hideTimer;
+  var DEFAULT_MSG = 'This content is protected and can\u2019t be copied.';
+  function flash(text){
+    if(!toast){
+      toast = document.createElement('div');
+      toast.className = 'copy-guard';
+      toast.setAttribute('role','status');
+      toast.setAttribute('aria-live','polite');
+      var dot = document.createElement('span');
+      dot.className = 'cg-dot'; dot.setAttribute('aria-hidden','true');
+      msgEl = document.createElement('span');
+      toast.appendChild(dot); toast.appendChild(msgEl);
+      document.body.appendChild(toast);
+    }
+    msgEl.textContent = text || DEFAULT_MSG;
+    toast.classList.add('show');
+    clearTimeout(hideTimer);
+    hideTimer = setTimeout(function(){ toast.classList.remove('show'); }, 2600);
+  }
+
+  /* Clipboard write that works on https AND file:// */
+  var allowCopyOnce = false;            /* lets our own copy bypass the poison below */
+  function legacyCopy(text){
+    var ta = document.createElement('textarea');
+    ta.value = text;
+    ta.setAttribute('readonly','');
+    ta.style.cssText = 'position:fixed;top:-9999px;left:-9999px;opacity:0;user-select:text;-webkit-user-select:text';
+    document.body.appendChild(ta);
+    ta.select(); try{ ta.setSelectionRange(0, text.length); }catch(_){}
+    var ok = false;
+    try{ allowCopyOnce = true; ok = document.execCommand('copy'); }catch(_){ ok = false; }
+    allowCopyOnce = false;
+    document.body.removeChild(ta);
+    return ok;
+  }
+  function copyText(text){
+    if(navigator.clipboard && navigator.clipboard.writeText && window.isSecureContext){
+      return navigator.clipboard.writeText(text)
+        .then(function(){ return true; })
+        .catch(function(){ return legacyCopy(text); });
+    }
+    return Promise.resolve(legacyCopy(text));
+  }
+
+  /* Anything that still reaches the clipboard is replaced with an attribution notice */
+  function poison(e){
+    if(allowCopyOnce) return;            /* our own programmatic copy */
+    if(selectionInContact()) return;     /* allow copying contact details */
+    var cd = e.clipboardData || window.clipboardData;
+    if(cd){
+      try{
+        cd.setData('text/plain', attribution());
+        cd.setData('text/html', '<p>' + attribution().replace(/\n/g,'<br>') + '</p>');
+      }catch(_){}
+    }
+    e.preventDefault();
+    flash();
+  }
+  document.addEventListener('copy', poison, true);
+  document.addEventListener('cut',  poison, true);
+
+  /* Close the obvious extraction paths (contact card exempted) */
+  document.addEventListener('contextmenu', function(e){ if(inContact(e.target)) return; e.preventDefault(); flash(); }, true);
+  document.addEventListener('dragstart',   function(e){ e.preventDefault(); }, true);
+  document.addEventListener('selectstart', function(e){ if(inContact(e.target)) return; e.preventDefault(); }, true);
+
+  /* Shortcuts: copy / cut / select-all / save / view-source / print, plus a light devtools deterrent */
+  document.addEventListener('keydown', function(e){
+    var k = (e.key || '').toLowerCase();
+    var mod = e.ctrlKey || e.metaKey;
+    if(mod && ['c','x','a','s','u','p'].indexOf(k) !== -1){
+      if((k === 'c' || k === 'x') && selectionInContact()) return;   /* allow copying contact details */
+      e.preventDefault();
+      if(k === 'c' || k === 'x' || k === 'a') flash();
+      return;
+    }
+    if(e.key === 'F12'){ e.preventDefault(); return; }
+    if(mod && e.shiftKey && ['i','j','c'].indexOf(k) !== -1){ e.preventDefault(); }
+  }, true);
+
+  /* Reliable email: native mailto still fires for anyone with a mail client;
+     we also copy the address as a guaranteed fallback for those without one. */
+  function initMail(){
+    var links = document.querySelectorAll('a[href^="mailto:"]');
+    Array.prototype.forEach.call(links, function(a){
+      a.addEventListener('click', function(){
+        var addr = (a.getAttribute('href') || '').replace(/^mailto:/i,'').split('?')[0];
+        if(!addr) return;
+        /* No preventDefault: if a handler is registered, the mail client opens. */
+        copyText(addr).then(function(ok){
+          flash(ok ? 'Email address copied \u2014 opening your mail app\u2026 (paste it if nothing opens)'
+                   : 'Email: ' + addr);
+        });
+      });
+    });
+  }
+  if(document.readyState === 'loading'){ document.addEventListener('DOMContentLoaded', initMail); }
+  else{ initMail(); }
+})();
+</script>
+</body>
+</html>
